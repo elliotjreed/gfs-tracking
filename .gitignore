@@ -1,5 +1,4 @@
-
-ser.phar
+composer.phar
 /vendor
 /.idea
 /node_modules
@@ -17,4 +16,4 @@ yarn-error.log
 /.env.local
 /.env.local.php
 /.env.*.local
-
+./run.php

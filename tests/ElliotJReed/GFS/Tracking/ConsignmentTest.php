@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ConsignmentTest extends TestCase
 {
-    public function testIt(): void
+    public function testItFails(): void
     {
         $this->assertTrue(false);
     }

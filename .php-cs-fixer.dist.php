@@ -18,7 +18,7 @@ return (new PhpCsFixer\Config())
         '@PSR12:risky' => true,
         '@Symfony' => true,
         '@Symfony:risky' => true,
-        'trailing_comma_in_multiline' => [],
+        'trailing_comma_in_multiline' => ['after_heredoc' => true, 'elements' => []],
         'multiline_whitespace_before_semicolons' => ['strategy' => 'no_multi_line'],
         'concat_space' => ['spacing' => 'one'],
         'types_spaces' => ['space' => 'single'],

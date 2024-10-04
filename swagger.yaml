@@ -1,0 +1,567 @@
+openapi: 3.0.0
+info:
+  title: GFS Connect
+  version: 1.0.0
+  description: The **GFS Connect** API allows you to interact with consignments and other
+    resources with in the GFS ECM platform.
+  contact:
+    name: GFS Customer Success
+    email: customer.success@gfsdeliver.com
+    url: https://ecm.gfsdeliver.com/developers
+  license:
+    name: UNLICENSED
+security:
+  - APIKeyHeader: []
+paths:
+  /connect/finder:
+    get:
+      x-eov-operation-id: finder
+      x-eov-operation-handler: finder
+      tags:
+        - Finder
+      description: The **Finder** API is used to perform a search, or lookup, to locate an
+        individual consignment within the wider GFS Connect API. If found, the
+        response contains the unique identifier for the consignment within the
+        Connect API, and links to additional API endpoints that can be used to
+        interact with the consignment.
+      operationId: finder
+      parameters:
+        - name: carrier
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: consNo
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinderResponse"
+        "401":
+          description: The request's `X-API-Key` header was not present, or was malformed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: The request's `X-API-Key` header contained a token that does not
+            have access to this API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No consignments were found for the provided parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: An unexpected server error occured processsing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  "/connect/consignment/{gfsId}":
+    get:
+      x-eov-operation-id: getConsignment
+      x-eov-operation-handler: consignments
+      tags:
+        - Consignment
+      description: Retrieve information on a single consignment
+      operationId: getConsignment
+      parameters:
+        - name: gfsId
+          in: path
+          required: true
+          description: The GFS Connect internal identifier for the consignment. The
+            [Finder](#/connect/finer) API can be used to look this up.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsignmentInfo"
+        "401":
+          description: The request's `X-API-Key` header was not present, or was malformed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: The request's `X-API-Key` header contained a token that does not
+            have access to this API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The requested consignment was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: An unexpected server error occured processsing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  "/connect/consignment/{gfsId}/parcels":
+    get:
+      x-eov-operation-id: getConsignmentParcels
+      x-eov-operation-handler: parcels
+      tags:
+        - Parcel
+      description: Retrieve a list of the parcels associated with a consignment
+      operationId: getConsignmentParcels
+      parameters:
+        - name: gfsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParcelIndex"
+        "401":
+          description: The request's `X-API-Key` header was not present, or was malformed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: The request's `X-API-Key` header contained a token that does not
+            have access to this API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The requested consignment was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: An unexpected server error occured processsing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  "/connect/consignment/{gfsId}/parcels/{parcelNo}":
+    get:
+      x-eov-operation-id: getConsignmentParcel
+      x-eov-operation-handler: parcels
+      tags:
+        - Parcel
+      description: Retrieve detailed information on a single parcel
+      operationId: getConsignmentParcel
+      parameters:
+        - name: gfsId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: parcelNo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Parcel"
+        "401":
+          description: The request's `X-API-Key` header was not present, or was malformed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: The request's `X-API-Key` header contained a token that does not
+            have access to this API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The requested consignment was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: An unexpected server error occured processsing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  "/connect/consignment/{gfsId}/parcels/{parcelNo}/track":
+    get:
+      x-eov-operation-id: getConsignmentParcelTracking
+      x-eov-operation-handler: tracking
+      tags:
+        - Tracking
+      description: Retrieve the tracking history for a parcel
+      operationId: getConsignmentParcelTracking
+      parameters:
+        - name: gfsId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: parcelNo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingHistory"
+        "401":
+          description: The request's `X-API-Key` header was not present, or was malformed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: The request's `X-API-Key` header contained a token that does not
+            have access to this API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The requested consignment was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: An unexpected server error occured processsing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  "/connect/consignment/{gfsId}/pod":
+    get:
+      x-eov-operation-id: getConsignmentPOD
+      x-eov-operation-handler: pods
+      tags:
+        - Proof of Delivery
+      description: Retrieve the Proof of Delivery (PoD) date for a consignment
+      operationId: getConsignmentPOD
+      parameters:
+        - name: gfsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PodInfo"
+        "401":
+          description: The request's `X-API-Key` header was not present, or was malformed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: The request's `X-API-Key` header contained a token that does not
+            have access to this API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: The requested consignment was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: An unexpected server error occured processsing the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+servers:
+  - url: https://ecm.gfsdeliver.com
+components:
+  securitySchemes:
+    APIKeyHeader:
+      type: apiKey
+      name: X-API-Key
+      in: header
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: number
+        message:
+          type: string
+        details:
+          type: string
+    Link:
+      type: object
+      required:
+        - rel
+        - href
+      properties:
+        rel:
+          type: string
+        href:
+          type: string
+    LinkArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Link"
+    TrackingEvent:
+      type: object
+      required:
+        - dateTime
+        - text
+      properties:
+        dateTime:
+          type: string
+          format: date-time
+        text:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+    Location:
+      type: object
+      properties:
+        locationText:
+          type: string
+        geo:
+          $ref: "#/components/schemas/Geo"
+    Geo:
+      type: object
+      required:
+        - lat
+        - long
+      properties:
+        lat:
+          type: number
+        long:
+          type: number
+    TrackingHistory:
+      type: object
+      required:
+        - events
+        - self
+        - parcel
+        - consignment
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackingEvent"
+        self:
+          $ref: "#/components/schemas/Link"
+        parcel:
+          $ref: "#/components/schemas/Link"
+        consignment:
+          $ref: "#/components/schemas/Link"
+        links:
+          $ref: "#/components/schemas/LinkArray"
+    Parcel:
+      type: object
+      required:
+        - parcelNo
+        - self
+        - consignment
+        - tracking
+      properties:
+        parcelNo:
+          type: string
+        self:
+          $ref: "#/components/schemas/Link"
+        consignment:
+          $ref: "#/components/schemas/Link"
+        tracking:
+          $ref: "#/components/schemas/Link"
+        links:
+          $ref: "#/components/schemas/LinkArray"
+    ParcelIndex:
+      type: object
+      required:
+        - self
+        - parcels
+      properties:
+        self:
+          $ref: "#/components/schemas/Link"
+        parcels:
+          type: array
+          items:
+            type: string
+    ParcelList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Parcel"
+    FinderResponse:
+      type: array
+      items:
+        type: object
+        required:
+          - gfsId
+          - carrier
+          - consNo
+          - despatchDate
+          - self
+          - consignment
+        properties:
+          gfsId:
+            type: string
+          carrier:
+            type: string
+          consNo:
+            type: string
+          despatchDate:
+            type: string
+            format: date
+          self:
+            $ref: "#/components/schemas/Link"
+          consignment:
+            $ref: "#/components/schemas/Link"
+          links:
+            $ref: "#/components/schemas/LinkArray"
+    PodInfo:
+      type: object
+      required:
+        - self
+        - consignment
+      properties:
+        signee:
+          type: string
+        deliveryDateTime:
+          type: string
+          format: date-time
+        itemCount:
+          type: integer
+        driverComment:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+        images:
+          type: array
+          items:
+            type: object
+            required:
+              - stream
+            properties:
+              stream:
+                type: string
+        self:
+          $ref: "#/components/schemas/Link"
+        consignment:
+          $ref: "#/components/schemas/Link"
+        links:
+          $ref: "#/components/schemas/LinkArray"
+    ConsignmentInfo:
+      type: object
+      required:
+        - gfsId
+        - carrier
+        - service
+        - consNo
+        - despatchDate
+        - shipmentRef
+        - self
+        - parcels
+        - parcelIndex
+      properties:
+        gfsId:
+          type: string
+        carrier:
+          type: string
+        service:
+          type: string
+        consNo:
+          type: string
+        despatchDate:
+          type: string
+          format: date
+        shipmentRef:
+          type: string
+        deliveryAddress:
+          type: object
+          required:
+            - street
+          properties:
+            contact:
+              type: string
+            company:
+              type: string
+            street:
+              type: array
+              minItems: 1
+              maxItems: 2
+              items:
+                type: string
+            city:
+              type: string
+            county:
+              type: string
+            postcode:
+              type: string
+            countryCode:
+              type: string
+              minLength: 2
+              maxLength: 2
+            geo:
+              $ref: "#/components/schemas/Geo"
+        parcels:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/TrackingEvent"
+        self:
+          $ref: "#/components/schemas/Link"
+        parcelIndex:
+          $ref: "#/components/schemas/Link"
+        pod:
+          $ref: "#/components/schemas/Link"
+        links:
+          $ref: "#/components/schemas/LinkArray"
+    BinaryFile:
+      type: object
+      required:
+        - mimeType
+        - stream
+      properties:
+        mimeType:
+          type: string
+        stream:
+          type: string

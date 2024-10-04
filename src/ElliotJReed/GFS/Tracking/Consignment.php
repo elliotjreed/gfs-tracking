@@ -4,91 +4,87 @@ declare(strict_types=1);
 
 namespace ElliotJReed\GFS\Tracking;
 
-use ElliotJReed\GFS\Tracking\Entity\Response;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
+use ElliotJReed\GFS\Tracking\Entity\DeliveryAddress;
+use ElliotJReed\GFS\Tracking\Entity\Geo;
+use ElliotJReed\GFS\Tracking\Entity\TrackingEvent;
+use ElliotJReed\GFS\Tracking\Exception\UnexpectedResponse;
+use GuzzleHttp\Exception\RequestException;
 
-class Consignment
+class Consignment extends Tracking
 {
-    private const BASE_URI = 'https://ecm.gfsdeliver.com';
-
-    private ClientInterface $httpClient;
-    private string $apiKey;
-
     /**
-     * @param ClientInterface $httpClient Guzzle HTTP client instance.
-     * @param string $apiKey API key for authentication.
+     * @throws \DateMalformedStringException
+     * @throws Exception\ConsignmentNotFound
+     * @throws Exception\InvalidApiAccessLevel
+     * @throws Exception\MissingOrMalformedApiKey
+     * @throws Exception\ServerError
+     * @throws UnexpectedResponse
      */
-    public function __construct(ClientInterface $httpClient, string $apiKey, string $baseUri = self::BASE_URI)
-    {
-        $this->httpClient = $httpClient;
-        $this->apiKey = $apiKey;
-    }
-
-    /**
-     * Lookup a consignment using carrier and consignment number.
-     *
-     * @param string $carrier The carrier identifier.
-     * @param string $consignmentNumber The consignment number.
-     * @return Response[] Array of Response objects.
-     *
-     * @throws ApiException
-     * @throws AuthenticationException
-     * @throws AuthorizationException
-     * @throws NotFoundException
-     * @throws ServerException
-     */
-    public function lookupConsignment(string $carrier, string $consignmentNumber): array
+    public function getConsignment(string $carrier, string $consNo): Entity\Consignment
     {
         try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . '/connect/finder', [
-                'headers' => [
-                    'X-API-Key' => $this->apiKey,
-                    'Accept' => 'application/json',
-                ],
+            $response = $this->client->get($this->baseUri . '/connect/finder', [
                 'query' => [
                     'carrier' => $carrier,
-                    'consNo' => $consignmentNumber
+                    'consNo' => $consNo,
+                ],
+                'headers' => [
+                    'X-API-KEY' => $this->apiKey
                 ]
             ]);
 
-            $statusCode = $response->getStatusCode();
-            $body = $response->getBody()->getContents();
-            $data = \json_decode($body, true);
-
-            if ($statusCode === 200) {
-                $consignments = [];
-                foreach ($data as $item) {
-                    $consignments[] = Response::fromArray($item);
-                }
-                return $consignments;
+            try {
+                $data = \json_decode($response->getBody()->getContents(), true, 32, \JSON_THROW_ON_ERROR);
+            } catch (\JsonException $exception) {
+                throw new UnexpectedResponse($this->formatError($exception), previous: $exception);
             }
 
-            $this->handleErrorResponse($statusCode, $data);
-        } catch (GuzzleException $e) {
-            throw new ApiException('HTTP request failed: ' . $e->getMessage(), 0, $e);
+            $response = $this->client->get($this->baseUri . $data[0]['consignment']['href'], [
+                'headers' => [
+                    'X-API-KEY' => $this->apiKey
+                ]
+            ]);
+        } catch (RequestException $exception) {
+            $this->handleRequestException($exception);
         }
 
-        // Should not reach here
-        throw new ApiException('Unexpected error occurred.');
-    }
-
-    private function handleErrorResponse(int $statusCode, ?array $data): void
-    {
-        $message = $data['message'] ?? 'An error occurred';
-        $code = $data['code'] ?? $statusCode;
-
-        switch ($statusCode) {
-            case 401:
-                throw new AuthenticationException($message, $code);
-            case 403:
-                throw new AuthorizationException($message, $code);
-            case 404:
-                throw new NotFoundException($message, $code);
-            case 500:
-                throw new ServerException($message, $code);
-            default:
-                throw new ApiException($message, $code);
+        try {
+            $consignmentData = \json_decode($response->getBody()->getContents(), true, 32, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new UnexpectedResponse($this->formatError($exception), previous: $exception);
         }
+
+        $deliveryAddress = (new DeliveryAddress())
+            ->setContact($consignmentData['deliveryAddress']['contact'])
+            ->setCompany($consignmentData['deliveryAddress']['company'])
+            ->setStreet($consignmentData['deliveryAddress']['street'])
+            ->setCity($consignmentData['deliveryAddress']['city'])
+            ->setCounty($consignmentData['deliveryAddress']['county'])
+            ->setCountryCode($consignmentData['deliveryAddress']['countryCode'])
+            ->setPostcode($consignmentData['deliveryAddress']['postcode']);
+
+        if (isset($consignmentData['deliveryAddress']['geo'])) {
+            $deliveryAddress->setGeo((new Geo())
+                ->setLongitude($consignmentData['deliveryAddress']['geo']['longitude'])
+                ->setLatitude($consignmentData['deliveryAddress']['geo']['latitude']));
+        }
+
+        $consignment = (new Entity\Consignment())
+            ->setCarrier($consignmentData['carrier'])
+            ->setGfsId($consignmentData['gfsId'])
+            ->setConsNo($consignmentData['consNo'])
+            ->setService($consignmentData['service'])
+            ->setDespatchDate(new \DateTimeImmutable($consignmentData['despatchDate']))
+            ->setShipmentRef($consignmentData['shipmentRef'])
+            ->setDeliveryAddress($deliveryAddress)
+            ->setStatus((new TrackingEvent())
+                ->setText($consignmentData['status']['text'])
+                ->setDateTime(new \DateTimeImmutable($consignmentData['status']['dateTime'])));
+
+        $consignment->setPod($this->requestProofOfDelivery($consignmentData['pod']['href']));
+
+        $consignment->setParcels($this->requestTrackingEvents($consignmentData['parcels']));
+
+        return $consignment;
     }
 }
