@@ -51,6 +51,10 @@ class ProofOfDelivery extends Tracking
             throw new UnexpectedResponse($this->formatError($exception), previous: $exception);
         }
 
-        return $this->requestProofOfDelivery($consignmentData['pod']['href']);
+        if (isset($consignmentData['pod'])) {
+            return $this->requestProofOfDelivery($consignmentData['pod']['href']);
+        }
+
+        return null;
     }
 }

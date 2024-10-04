@@ -81,7 +81,9 @@ class Consignment extends Tracking
                 ->setText($consignmentData['status']['text'])
                 ->setDateTime(new \DateTimeImmutable($consignmentData['status']['dateTime'])));
 
-        $consignment->setPod($this->requestProofOfDelivery($consignmentData['pod']['href']));
+        if (isset($consignmentData['pod'])) {
+            $consignment->setPod($this->requestProofOfDelivery($consignmentData['pod']['href']));
+        }
 
         $consignment->setParcels($this->requestTrackingEvents($consignmentData['parcels']));
 
