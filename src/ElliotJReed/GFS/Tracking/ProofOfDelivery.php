@@ -7,6 +7,7 @@ namespace ElliotJReed\GFS\Tracking;
 use ElliotJReed\GFS\Tracking\Entity\ProofOfDelivery as ProofOfDeliveryEntity;
 use ElliotJReed\GFS\Tracking\Exception\ServerError;
 use ElliotJReed\GFS\Tracking\Exception\UnexpectedResponse;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Client\ClientExceptionInterface;
 
@@ -45,7 +46,7 @@ class ProofOfDelivery extends Tracking
             ]);
         } catch (RequestException $exception) {
             $this->handleRequestException($exception);
-        } catch (ClientExceptionInterface $exception) {
+        } catch (ClientExceptionInterface | ConnectException $exception) {
             throw new ServerError($this->formatError($exception), previous: $exception);
         }
 
