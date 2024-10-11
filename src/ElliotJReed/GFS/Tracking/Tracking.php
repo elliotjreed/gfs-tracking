@@ -16,6 +16,7 @@ use ElliotJReed\GFS\Tracking\Exception\MissingOrMalformedApiKey;
 use ElliotJReed\GFS\Tracking\Exception\ServerError;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Client\ClientExceptionInterface;
 
 abstract class Tracking
 {
@@ -113,7 +114,7 @@ abstract class Tracking
 
                     $events[] = $event;
                 }
-            } catch (\JsonException | RequestException $exception) {
+            } catch (\JsonException | ClientExceptionInterface $exception) {
             }
 
             $trackingEvents[] = (new Parcel())->setTrackingEvents($events);
