@@ -73,7 +73,7 @@ abstract class Tracking
                 ->setDriverComment($podData['driverComment'])
                 ->setLocation($location)
                 ->setImages($images);
-        } catch (\JsonException | RequestException $exception) {
+        } catch (\JsonException | ClientExceptionInterface) {
         }
 
         return null;
@@ -114,7 +114,7 @@ abstract class Tracking
 
                     $events[] = $event;
                 }
-            } catch (\JsonException | ClientExceptionInterface $exception) {
+            } catch (\JsonException | ClientExceptionInterface) {
             }
 
             $trackingEvents[] = (new Parcel())->setTrackingEvents($events);

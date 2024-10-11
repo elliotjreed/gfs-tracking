@@ -19,7 +19,7 @@ class Consignment extends Tracking
      * @throws Exception\ConsignmentNotFound
      * @throws Exception\InvalidApiAccessLevel
      * @throws Exception\MissingOrMalformedApiKey
-     * @throws Exception\ServerError
+     * @throws ServerError
      * @throws UnexpectedResponse
      */
     public function getConsignment(string $carrier, string $consNo): Entity\Consignment

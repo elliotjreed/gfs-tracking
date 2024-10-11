@@ -7,7 +7,6 @@ namespace ElliotJReed\GFS\Tracking;
 use ElliotJReed\GFS\Tracking\Entity\ProofOfDelivery as ProofOfDeliveryEntity;
 use ElliotJReed\GFS\Tracking\Exception\ServerError;
 use ElliotJReed\GFS\Tracking\Exception\UnexpectedResponse;
-use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Client\ClientExceptionInterface;
 
@@ -17,7 +16,7 @@ class ProofOfDelivery extends Tracking
      * @throws Exception\ConsignmentNotFound
      * @throws Exception\InvalidApiAccessLevel
      * @throws Exception\MissingOrMalformedApiKey
-     * @throws Exception\ServerError
+     * @throws ServerError
      * @throws UnexpectedResponse
      */
     public function getProofOfDelivery(string $carrier, string $consNo): ?ProofOfDeliveryEntity
@@ -46,7 +45,7 @@ class ProofOfDelivery extends Tracking
             ]);
         } catch (RequestException $exception) {
             $this->handleRequestException($exception);
-        } catch (ClientExceptionInterface | ConnectException $exception) {
+        } catch (ClientExceptionInterface $exception) {
             throw new ServerError($this->formatError($exception), previous: $exception);
         }
 

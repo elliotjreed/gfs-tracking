@@ -17,7 +17,7 @@ class TrackingEvents extends Tracking
      * @throws Exception\ConsignmentNotFound
      * @throws Exception\InvalidApiAccessLevel
      * @throws Exception\MissingOrMalformedApiKey
-     * @throws Exception\ServerError
+     * @throws ServerError
      * @throws UnexpectedResponse
      */
     public function getTrackingEvents(string $carrier, string $consNo): array
